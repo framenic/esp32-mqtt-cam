@@ -18,8 +18,8 @@ void apconfig_init()
 	tcpip_adapter_ip_info_t info;
 	bzero(&info, sizeof(info));
 	//memset(&info, 0, sizeof(info));
-	IP4_ADDR(&info.ip, 192, 168, 1, 1);
-	IP4_ADDR(&info.gw, 192, 168, 1, 1);
+	IP4_ADDR(&info.ip, 192, 168, 4, 1);
+	IP4_ADDR(&info.gw, 192, 168, 4, 1);
 	IP4_ADDR(&info.netmask, 255, 255, 255, 0);
 	ESP_ERROR_CHECK(tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_AP, &info));
 	ESP_ERROR_CHECK(tcpip_adapter_dhcps_start(TCPIP_ADAPTER_IF_AP));

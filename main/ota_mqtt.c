@@ -173,7 +173,7 @@ int ota_mqtt_start(esp_mqtt_client_handle_t client, char* topic)
 		msg_id = esp_mqtt_client_subscribe(client, ota_topic, 0);
 		ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
 	}
-	else ESP_LOGI(TAG, "Error: Already subscrbed for OTA data");
+	else ESP_LOGI(TAG, "Error: Already subscribed for OTA data");
 	return 1;
 }
 

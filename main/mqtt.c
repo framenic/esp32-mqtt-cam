@@ -14,9 +14,12 @@
 #include "ota_http.h"
 #include "sled.h"
 #include "apconfig.h"
+#include "net_camera.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/timers.h"
+
+#include <cJSON.h>
 
 static const char *TAG = "mqtt.c";
 
@@ -457,10 +460,50 @@ void mqttDataCb(esp_mqtt_client_handle_t client, const char* topic, uint32_t top
       else
         strcpy(svalue, "1 to start");
     }
-    else {
-      type = NULL;
-    }
-    if (type == NULL) {
+	
+	else if (!grpflg && !strcmp(type,"camera")) {
+		
+		cJSON *jsonroot = cJSON_Parse(dataBuf);
+		if (jsonroot!=NULL) {
+			cJSON *element;
+			cJSON_ArrayForEach(element,jsonroot) {
+				if (cJSON_IsString(element)) {
+					ESP_LOGI(TAG,"Setting camera parameter %s to %s",element->string,cJSON_GetStringValue(element));
+					set_camera(element->string, element->valuestring);
+					strcpy(svalue, cJSON_GetStringValue(element));
+				}
+			}
+			cJSON_Delete(jsonroot);
+		}
+		else {
+			ESP_LOGW(TAG,"Error in JSON format for camera parameters");
+			type = NULL;
+		}
+		
+		/*char *parameter;
+		
+		parameter = strstr(topicBuf,"camera/");
+		if ((parameter!=NULL) && (parameter[7]!=0)) {
+			parameter+=7;
+			if ((data_len > 0) && (data_len < 32)) {
+				ESP_LOGI(TAG,"Setting camera parameter %s to %s",parameter,dataBuf);
+				set_camera(parameter, dataBuf);
+				strcpy(svalue, dataBuf);
+			}	
+			else {
+				ESP_LOGI(TAG,"Getting camera parameter %s",parameter);
+				strcpy(svalue, dataBuf);
+			}
+		} 
+		else type = NULL; */
+		
+	}  	
+    else  type = NULL;
+    
+ 	
+	
+	
+	if (type == NULL) {
       set_sled_blink(SLED_FAST_BLINK,4);
       ESP_LOGI(TAG,"APP: Syntax error");
       sprintf(stopic, "%s/%s/SYNTAX", PUB_PREFIX, sysCfg.mqtt_topic);
@@ -577,6 +620,7 @@ void tick100msCallback(TimerHandle_t xTimer)
 			timer = 0;
 			sysCfg.power = 0;
 			//GPIO_OUTPUT_SET(REL_PIN, sysCfg.power);
+			power_set(sysCfg.power);
 			send_power(client);
 			send_timer(client);
 	  }
@@ -590,6 +634,7 @@ void tick100msCallback(TimerHandle_t xTimer)
 		if ((timer==0)&&(sysCfg.power)) {
 			sysCfg.power = 0;
 			//GPIO_OUTPUT_SET(REL_PIN, sysCfg.power);
+			power_set(sysCfg.power);
 			send_power(client);
 			send_timer(client);
 		}

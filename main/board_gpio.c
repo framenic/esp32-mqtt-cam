@@ -2,7 +2,7 @@
 
 #define LED_GPIO 2
 #define POWER_GPIO 4
-#define BUTTON_GPIO 0
+#define BUTTON_GPIO 15
 
 void gpio_init()
 {

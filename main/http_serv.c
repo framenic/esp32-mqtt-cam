@@ -64,6 +64,8 @@ const char HTTP_FORM[] =
   "<input type='submit' name='save' value='Save'>"
   "<br><br>"
   "<input type='submit' name='savereboot' value='Save and Reboot'>"
+  "<br><br><br>"
+  "<input type='submit' name='reboot' value='Reboot'>"
   "</form>"
 //  "<p>If you click the Submit button, the form-data will be sent to a page called /action_page.php.</p>"
 	;
@@ -75,6 +77,10 @@ const char HTTP_STATUSUPDATED[] =
 const char HTTP_STATUSUPDATEDREBOOT[] =
   "<br><br>" 
   "<p style='color:Tomato;'>Configuration updated, REBOOTING...</p>";
+
+const char HTTP_REBOOT[] =
+  "<br><br>" 
+  "<p style='color:Tomato;'>REBOOTING...</p>";
 
 
 const char HTTP_END[] =
@@ -203,7 +209,14 @@ static void http_server_netconn_serve(struct netconn *conn) {
 						else break;
 				}
 				// update sysCfg only if parsing was complete
-				if (i==POSTPARSE_NUM) sysCfg=*newcfg;
+				if ((i==POSTPARSE_NUM) && (strstr(body,"reboot="))){
+					netconn_write(conn, HTTP_REBOOT, sizeof(HTTP_REBOOT) - 1, NETCONN_NOCOPY);
+					// delay 4 seconds before restarting
+					const TickType_t xDelay = 3000 / portTICK_PERIOD_MS;
+					vTaskDelay( xDelay );					
+					esp_restart();
+				}
+				else sysCfg=*newcfg;
 				
 				
 				// send back updated page

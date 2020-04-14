@@ -6,7 +6,7 @@
 
 //#define CFG_HOLDER          0x20170312   // Change this value to load default configurations
 
-#define PROJECT "esp32-mqtt"
+#define PROJECT "esp32-mqtt-cam"
 
 #ifdef CONFIG_PRIVATE_USER_CONFIG 
 #include "private_user_config.h"

@@ -10,8 +10,8 @@
 #include <sys/param.h>
 #include <esp_ota_ops.h>
 
-#include <esp_http_server.h>
-#include "esp_camera.h"
+#include "http_serv.h"
+
 #include "config.h"
 #include "mqtt.h"
 #include "rtc_sntp.h"
@@ -20,139 +20,13 @@
 #include "comm_queue.h"
 //#include "board_gpio.h"
 #include "sled.h"
-#include "http_serv.h"
+#include "net_camera.h"
 
-static const char *TAG = "esp32-cam-MQTT";
 
-static camera_config_t camera_config = {
-    .pin_pwdn = CONFIG_PWDN,
-    .pin_reset = CONFIG_RESET,
-    .pin_xclk = CONFIG_XCLK,
-    .pin_sscb_sda = CONFIG_SDA,
-    .pin_sscb_scl = CONFIG_SCL,
+static const char *TAG = "main.c";
 
-    .pin_d7 = CONFIG_D7,
-    .pin_d6 = CONFIG_D6,
-    .pin_d5 = CONFIG_D5,
-    .pin_d4 = CONFIG_D4,
-    .pin_d3 = CONFIG_D3,
-    .pin_d2 = CONFIG_D2,
-    .pin_d1 = CONFIG_D1,
-    .pin_d0 = CONFIG_D0,
-    .pin_vsync = CONFIG_VSYNC,
-    .pin_href = CONFIG_HREF,
-    .pin_pclk = CONFIG_PCLK,
 
-    //XCLK 20MHz or 10MHz
-    .xclk_freq_hz = CONFIG_XCLK_FREQ,
-    .ledc_timer = LEDC_TIMER_0,
-    .ledc_channel = LEDC_CHANNEL_0,
 
-    .pixel_format = PIXFORMAT_JPEG, //YUV422,GRAYSCALE,RGB565,JPEG
-    .frame_size = FRAMESIZE_UXGA,   //QQVGA-UXGA Do not use sizes above QVGA when not JPEG
-
-    .jpeg_quality = 12, //0-63 lower number means higher quality
-    .fb_count = 1       //if more than one, i2s runs in continuous mode. Use only with JPEG
-};
-
-static esp_err_t init_camera()
-{
-  //initialize the camera
-  esp_err_t err = esp_camera_init(&camera_config);
-  if (err != ESP_OK)
-  {
-    ESP_LOGE(TAG, "Camera Init Failed");
-    return err;
-  }
-
-  return ESP_OK;
-}
-
-/*
-
-typedef struct
-{
-  httpd_req_t *req;
-  size_t len;
-} jpg_chunking_t;
-
-static size_t jpg_encode_stream(void *arg, size_t index, const void *data, size_t len)
-{
-  jpg_chunking_t *j = (jpg_chunking_t *)arg;
-  if (!index)
-  {
-    j->len = 0;
-  }
-  if (httpd_resp_send_chunk(j->req, (const char *)data, len) != ESP_OK)
-  {
-    return 0;
-  }
-  j->len += len;
-  return len;
-}
-
-static esp_err_t jpg_httpd_handler(httpd_req_t *req)
-{
-  camera_fb_t *fb = NULL;
-  esp_err_t res = ESP_OK;
-  size_t fb_len = 0;
-  int64_t fr_start = esp_timer_get_time();
-
-  fb = esp_camera_fb_get();
-  if (!fb)
-  {
-    ESP_LOGE(TAG, "Camera capture failed");
-    httpd_resp_send_500(req);
-    return ESP_FAIL;
-  }
-  res = httpd_resp_set_type(req, "image/jpeg");
-  if (res == ESP_OK)
-  {
-    res = httpd_resp_set_hdr(req, "Content-Disposition", "inline; filename=capture.jpg");
-  }
-
-  if (res == ESP_OK)
-  {
-    fb_len = fb->len;
-    res = httpd_resp_send(req, (const char *)fb->buf, fb->len);
-  }
-  esp_camera_fb_return(fb);
-  int64_t fr_end = esp_timer_get_time();
-  ESP_LOGI(TAG, "JPG: %uKB %ums", (uint32_t)(fb_len / 1024), (uint32_t)((fr_end - fr_start) / 1000));
-  return res;
-}
-
-httpd_uri_t uri_handler_jpg = {
-    .uri = "/jpg",
-    .method = HTTP_GET,
-    .handler = jpg_httpd_handler};
-
-httpd_handle_t start_webserver(void)
-{
-  httpd_handle_t server = NULL;
-  httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-
-  // Start the httpd server
-  ESP_LOGI(TAG, "Starting server on port: '%d'", config.server_port);
-  if (httpd_start(&server, &config) == ESP_OK)
-  {
-    // Set URI handlers
-    ESP_LOGI(TAG, "Registering URI handlers");
-    httpd_register_uri_handler(server, &uri_handler_jpg);
-    return server;
-  }
-
-  ESP_LOGI(TAG, "Error starting server!");
-  return NULL;
-}
-
-void stop_webserver(httpd_handle_t server)
-{
-  // Stop the httpd server
-  httpd_stop(server);
-}
-
-*/
 
 //static esp_err_t event_handler(void *ctx, system_event_t *event)
 static void wifi_event_handler(void* ctx, esp_event_base_t event_base, int32_t event_id, void* event_data)
@@ -172,7 +46,7 @@ static void wifi_event_handler(void* ctx, esp_event_base_t event_base, int32_t e
 			ESP_LOGI(TAG, "WIFI_EVENT_STA_START");
 			ESP_ERROR_CHECK(esp_wifi_connect());
 			
-			http_serv_start();
+			//http_serv_start();
 			
 			break;
 		  case WIFI_EVENT_STA_DISCONNECTED:
@@ -182,16 +56,24 @@ static void wifi_event_handler(void* ctx, esp_event_base_t event_base, int32_t e
 			if (mqtt_get_state()==STATE_WIFI_CONNECTING) ESP_ERROR_CHECK(esp_wifi_connect());
 
 			/* Stop the web server */
-			/*
+			
 			if (*server)
 			{
 			  stop_webserver(*server);
 			  *server = NULL;
 			}
-			*/
+			
 			
 			//http_serv_stop();
 			break;
+		  case WIFI_EVENT_AP_START:
+		    if (*server)
+			{
+			  stop_webserver(*server);
+			  *server = NULL;
+			}
+			
+		    http_serv_start();
 		  default:
 			break;
 		  }
@@ -207,12 +89,12 @@ static void wifi_event_handler(void* ctx, esp_event_base_t event_base, int32_t e
 						 ip4addr_ntoa(&event->ip_info.ip));
 				
 				/* Start the web server */
-				/*
+				
 				if (*server == NULL)
 				{
 				  *server = start_webserver();
 				}
-				*/
+				
 								
 				break;
 			default:
@@ -280,7 +162,7 @@ void app_main()
   wifi_init(&server);
   mqtt_init();
   
-  //init_camera();
+  init_camera();
   wifi_start(&server);
   
   //mqtt_start();
@@ -288,5 +170,7 @@ void app_main()
   rtc_sntp_init(sysCfg.timezone);
   comm_uart_init();
   telnetInit(23);
+  
+  
 
 }

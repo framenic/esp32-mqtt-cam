@@ -3,7 +3,8 @@
 # project subdirectory.
 #
 
-PROJECT_NAME := blink
+PROJECT_NAME := esp32-mqtt-cam
 
+include $(SOLUTION_PATH)/components/component_conf.mk
 include $(IDF_PATH)/make/project.mk
 
