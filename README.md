@@ -1,6 +1,27 @@
-# ESP32 mqtt client for controlling switches
+# ESP32 mqtt camera 
 
-This is an implementation of a mqqt control switch on ESP32 SoC. Development toolchain is esp-idf v4.1.
+This is a complete implementation of a esp32 camera that publish images via mqtt. Images are also served on http
+
+- images are published periodically as data/es32-mqtt-cam/image
+- pub time can be configured via pubinterval parameter
+- all camera parameters can be changed via mqtt publish to cmnd/es32-mqtt-cam/camera, messages mu be in JSON format:
+
+cmnd/es32-mqtt-cam/camera {"framesize" : "3"}		:set framesize to 
+cmnd/es32-mqtt-cam/camera {"framesize" : "6"}		:set framesize to 
+cmnd/es32-mqtt-cam/camera {"framesize" : "8"}		:set framesize to 
+cmnd/es32-mqtt-cam/camera {"framesize" : "9"}		:set framesize to 
+cmnd/es32-mqtt-cam/camera {"framesize" : "10"}		:set framesize to 
+cmnd/es32-mqtt-cam/camera {"framesize" : "11"}		:set framesize to 
+cmnd/es32-mqtt-cam/camera {"framesize" : "13"}		: set framesize to UXGA (1600x1200)
+
+cmnd/es32-mqtt-cam/camera {"nightmode" : "0"}		:disable night mode (normal framerate) 
+cmnd/es32-mqtt-cam/camera {"nightmode" : "1"}		:enable night mode (slow framerate) 
+cmnd/es32-mqtt-cam/camera {"save_to_nvs" : "1"}		:save current camera parameters 
+
+
+
+
+All mqtt funtions are base on the repository framenic/esp32-mqtt-swith
 
 - support TLS encryption to remote MQTT server
 - support configuration and commands via telnet
