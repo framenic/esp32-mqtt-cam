@@ -49,6 +49,7 @@ esp_err_t init_camera(){
         gpio_set_level(camera_config.pin_pwdn, 0);
     }
 
+	
     //initialize the camera
     esp_err_t err = esp_camera_init(&camera_config);
     if (err != ESP_OK) {
@@ -56,6 +57,7 @@ esp_err_t init_camera(){
         return err;
     }
 	
+	esp_camera_load_from_nvs("cam_param");
 	//esp_camera_sensor_get()->set_nightmode(esp_camera_sensor_get(),1);
 
     return ESP_OK;
@@ -96,6 +98,7 @@ esp_err_t set_camera(char * parameter,char *value)
     else if(!strcmp(parameter, "wb_mode")) res = s->set_wb_mode(s, val);
     else if(!strcmp(parameter, "ae_level")) res = s->set_ae_level(s, val);
 	else if(!strcmp(parameter, "nightmode")) res = s->set_nightmode(s, val);
+	else if(!strcmp(parameter, "sava_to_nvs") && !strcmp(value, "1")) res = esp_camera_save_to_nvs("cam_param");
     else ESP_LOGW(TAG, "Invalid parameter %s", parameter);
 
 	return ESP_OK;

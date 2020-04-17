@@ -98,6 +98,8 @@ void CFG_Save()
 	nvs_set_str(nvs_syscfg_h, "MQTT_GRPTOPIC", sysCfg.mqtt_grptopic);
 	nvs_set_str(nvs_syscfg_h, "MQTT_SUBTOPIC", sysCfg.mqtt_subtopic);
 	
+	nvs_set_u32(nvs_syscfg_h, "MQTT_PUBINTERV", sysCfg.mqtt_pub_interval);
+		
 	nvs_set_str(nvs_syscfg_h, "OTA_URL", sysCfg.otaUrl);
 	
 	nvs_set_str(nvs_syscfg_h, "APP_TIMEZONE", sysCfg.timezone);
@@ -147,6 +149,8 @@ void CFG_Load()
 	length = sizeof(sysCfg.mqtt_subtopic);
 	if (nvs_get_str(nvs_syscfg_h, "MQTT_SUBTOPIC", sysCfg.mqtt_subtopic, &length)!=ESP_OK) strcpy(sysCfg.mqtt_subtopic, MQTT_SUBTOPIC);
 	
+	if (nvs_get_u32(nvs_syscfg_h, "MQTT_PUBINTERV", &sysCfg.mqtt_pub_interval)!=ESP_OK) sysCfg.mqtt_pub_interval = MQTT_PUBINTERV;
+		
 	length = sizeof(sysCfg.otaUrl);
 	if (nvs_get_str(nvs_syscfg_h, "OTA_URL", sysCfg.otaUrl, &length)!=ESP_OK) strcpy(sysCfg.otaUrl, OTA_URL);
 	

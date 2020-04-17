@@ -15,6 +15,8 @@
 #include "sled.h"
 #include "apconfig.h"
 #include "net_camera.h"
+#include "esp_camera.h"
+
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/timers.h"
@@ -106,6 +108,23 @@ void send_mqttota_off(esp_mqtt_client_handle_t client)
 	telnetSend("\n", 1);
 }
 
+void send_image(esp_mqtt_client_handle_t client)
+{
+	camera_fb_t *fb = NULL;
+	char stopic[80];
+
+	sprintf(stopic, "data/%s/image", sysCfg.mqtt_topic);
+	fb = esp_camera_fb_get();
+	if (fb) {
+		if(fb->format == PIXFORMAT_JPEG) {
+			//MQTT_Publish_Tx(&mqttClient, stopic, svalue, strlen(svalue), 1, 1); //retain
+			if (mqtt_connected) esp_mqtt_client_publish(client, stopic, (const char *)fb->buf, fb->len, 0, 1);
+		}
+		else ESP_LOGE(TAG, "Camera capture not in JPEG format");
+		esp_camera_fb_return(fb);
+	}
+	else ESP_LOGE(TAG, "Camera capture failed");
+}
 
 void send_power(esp_mqtt_client_handle_t client)
 {
@@ -439,6 +458,13 @@ void mqttDataCb(esp_mqtt_client_handle_t client, const char* topic, uint32_t top
 			break;
         }
     }
+	else if (!grpflg && !strcmp(type,"pubinterval")) {
+      if ((data_len > 0) && (data_len < 32) ) {
+        sysCfg.mqtt_pub_interval = payload;
+      }
+      sprintf(svalue, "%d", sysCfg.mqtt_pub_interval);
+    }
+	
 	else if (!grpflg && !strcmp(type,"mqttotastart")) {
       if ((data_len > 0) && (payload == 1)) {
         if (ota_mqtt_start(client,sysCfg.device_id)) {
@@ -508,7 +534,7 @@ void mqttDataCb(esp_mqtt_client_handle_t client, const char* topic, uint32_t top
       ESP_LOGI(TAG,"APP: Syntax error");
       sprintf(stopic, "%s/%s/SYNTAX", PUB_PREFIX, sysCfg.mqtt_topic);
       if (!grpflg)
-        strcpy(svalue, "Status, Upgrade, Mqttotastart, Mqttotaconfirm, Otaurl, Restart, Reset, Smartconfig, SSId, Password, MqttHost, MqttPort, MqttUser, MqttPass, MqttCleansession, GroupTopic, Topic, Timezone, Time, Light, Power, Timer, PowerAtReset, Pulse");
+        strcpy(svalue, "Status, Upgrade, Mqttotastart, Mqttotaconfirm, Otaurl, Restart, Reset, Smartconfig, SSId, Password, MqttHost, MqttPort, MqttUser, MqttPass, MqttCleansession, GroupTopic, Topic, Timezone, Time, Light, Power, Timer, PowerAtReset, Pulse, PubInterval");
       else
         strcpy(svalue, "Status, GroupTopic, Timezone, Light, Power");
     }
@@ -599,8 +625,12 @@ void tick100msCallback(TimerHandle_t xTimer)
   //char stopic[128], svalue[128];
   //char *token;
   static uint16_t dtimer=0;	
-
+  static uint16_t dpubinterval=0;	
+  
   state++;
+  
+  esp_mqtt_client_handle_t client = (esp_mqtt_client_handle_t)pvTimerGetTimerID(xTimer);
+  
   if (state == STATES) {             // Every second
     state = 0;
     /*
@@ -610,9 +640,19 @@ void tick100msCallback(TimerHandle_t xTimer)
 	localtime_r(&now, &timeinfo);
     if ((timeinfo.Minute == 0) && (timeinfo.Second == 30)) send_heartbeat();
     */
+	
+	if (sysCfg.mqtt_pub_interval) {
+		dpubinterval++;
+		if (dpubinterval>=sysCfg.mqtt_pub_interval) {
+			dpubinterval =0;
+		
+			send_image(client);
+		}
+	}
+	
   }
 
-  esp_mqtt_client_handle_t client = (esp_mqtt_client_handle_t)pvTimerGetTimerID(xTimer);
+  
   
   if (pulse) {
 	  pulse--;

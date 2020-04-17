@@ -58,6 +58,7 @@ typedef struct{
 	uint8_t power_at_reset; // 0:off 1:on 2:last state
 	uint32_t pulse;
 	
+	uint32_t mqtt_pub_interval;
 } SYSCFG;
 
 void CFG_Init();

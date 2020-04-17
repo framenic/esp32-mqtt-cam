@@ -44,6 +44,9 @@
 
 // Application
 #define MQTT_SUBTOPIC       "power"
+
+#define MQTT_PUBINTERV		0  //seconds between periodic publishing, 0=disabled
+
 #define APP_TIMEZONE        "CET-1CEST-2,M3.5.0/02:00:00,M10.5.0/03:00:00"            // CET DST
 #define APP_POWER           0            // Saved power state Off
 
