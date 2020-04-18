@@ -8,18 +8,28 @@ esp32-mqtt-camera is an mqtt client camera that publishes images to mqtt (using 
 - all camera parameters can be changed via mqtt by publishing to cmnd/es32-mqtt-cam/camera, messages must be in JSON format (e.g. cmnd/es32-mqtt-cam/camera {"framesize" : "3"}):
 
 {"framesize" : "3"}		:set framesize to QVGA (320x240)
+
 {"framesize" : "6"}		:set framesize to CIF (400x296)
+
 {"framesize" : "8"}		:set framesize to VGA (640x480)
+
 {"framesize" : "9"}		:set framesize to SVGA (800x600)
+
 {"framesize" : "10"}		:set framesize to XGA (1024x768)
+
 {"framesize" : "11"}		:set framesize to HD 16/9 (1280x720)
+
 {"framesize" : "13"}		:set framesize to UXGA (1600x1200)
+
 
 Complete list of frame sizes here: https://github.com/framenic/esp32-camera/blob/master/driver/sensor.c
 
-{"nightmode" : "0"}		:disable night mode (normal framerate) 
+{"nightmode" : "0"}		:disable night mode (normal framerate)
+
 {"nightmode" : "1"}		:enable night mode (slow framerate) 
+
 {"save_to_nvs" : "1"}		:save current camera parameters 
+
 
 
 
