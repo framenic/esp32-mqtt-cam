@@ -1,27 +1,31 @@
-# ESP32 mqtt camera 
+# ESP32 mqtt camera with nightmode function
 
-This is a complete implementation of a esp32 camera that publish images via mqtt. Images are also served on http
+esp32-mqtt-camera is an mqtt client camera that publishes images to mqtt (using secure TLS connections). Images are also served locally at http://CAMERA_IP/jpg and http://CAMERA_IP/mjpg
 
-- images are published periodically as data/es32-mqtt-cam/image
-- pub time can be configured via pubinterval parameter
-- all camera parameters can be changed via mqtt publish to cmnd/es32-mqtt-cam/camera, messages mu be in JSON format:
+- images are published periodically as data/es32-mqtt-cam/image as jpg payload
+- publish interval time in seconds can be configured via pubinterval parameter (cmnd/es32-mqtt-cam/pubinterval) 0 means no publish
+- all camera parameters are saved to nvs to restore configuration at power up
+- all camera parameters can be changed via mqtt by publishing to cmnd/es32-mqtt-cam/camera, messages must be in JSON format (e.g. cmnd/es32-mqtt-cam/camera {"framesize" : "3"}):
 
-cmnd/es32-mqtt-cam/camera {"framesize" : "3"}		:set framesize to 
-cmnd/es32-mqtt-cam/camera {"framesize" : "6"}		:set framesize to 
-cmnd/es32-mqtt-cam/camera {"framesize" : "8"}		:set framesize to 
-cmnd/es32-mqtt-cam/camera {"framesize" : "9"}		:set framesize to 
-cmnd/es32-mqtt-cam/camera {"framesize" : "10"}		:set framesize to 
-cmnd/es32-mqtt-cam/camera {"framesize" : "11"}		:set framesize to 
-cmnd/es32-mqtt-cam/camera {"framesize" : "13"}		: set framesize to UXGA (1600x1200)
+{"framesize" : "3"}		:set framesize to QVGA (320x240)
+{"framesize" : "6"}		:set framesize to CIF (400x296)
+{"framesize" : "8"}		:set framesize to VGA (640x480)
+{"framesize" : "9"}		:set framesize to SVGA (800x600)
+{"framesize" : "10"}		:set framesize to XGA (1024x768)
+{"framesize" : "11"}		:set framesize to HD 16/9 (1280x720)
+{"framesize" : "13"}		:set framesize to UXGA (1600x1200)
 
-cmnd/es32-mqtt-cam/camera {"nightmode" : "0"}		:disable night mode (normal framerate) 
-cmnd/es32-mqtt-cam/camera {"nightmode" : "1"}		:enable night mode (slow framerate) 
-cmnd/es32-mqtt-cam/camera {"save_to_nvs" : "1"}		:save current camera parameters 
+Complete list of frame sizes here: https://github.com/framenic/esp32-camera/blob/master/driver/sensor.c
+
+{"nightmode" : "0"}		:disable night mode (normal framerate) 
+{"nightmode" : "1"}		:enable night mode (slow framerate) 
+{"save_to_nvs" : "1"}		:save current camera parameters 
 
 
 
 
-All mqtt funtions are base on the repository framenic/esp32-mqtt-swith
+All mqtt funtions are based on the repository esp32-mqtt-swith
+https://github.com/framenic/esp32-mqtt-switch
 
 - support TLS encryption to remote MQTT server
 - support configuration and commands via telnet
