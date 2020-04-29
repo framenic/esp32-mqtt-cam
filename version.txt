@@ -1,4 +1,5 @@
-1.1.0
+1.2.0
+1.2.0 added red led driving
 1.1.0 main release: mqtt publish of images, camera parameters saved in nvs
 1.0.0 implemented first version cam support
 0.9.1 changed default hostname

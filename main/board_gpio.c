@@ -1,8 +1,11 @@
 #include "driver/gpio.h"
 
-#define LED_GPIO 2
+#define LED_GPIO 33
 #define POWER_GPIO 4
 #define BUTTON_GPIO 15
+
+#define LED_ON_STATE 0
+#define LEF_OFF_STATE 1
 
 void gpio_init()
 {
@@ -23,17 +26,19 @@ void gpio_init()
 
 void led_on()
 {
-	gpio_set_level(LED_GPIO, 1);
+	gpio_set_level(LED_GPIO, LED_ON_STATE);
 }
 
 void led_off()
 {
-	gpio_set_level(LED_GPIO, 0);
+	gpio_set_level(LED_GPIO, LEF_OFF_STATE);
 }
 
 void led_set(uint32_t level)
 {
-	gpio_set_level(LED_GPIO, level);
+	if (level==0)
+		gpio_set_level(LED_GPIO, LEF_OFF_STATE);
+	else gpio_set_level(LED_GPIO, LED_ON_STATE);
 }
 
 void power_on()

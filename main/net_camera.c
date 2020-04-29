@@ -98,7 +98,7 @@ esp_err_t set_camera(char * parameter,char *value)
     else if(!strcmp(parameter, "wb_mode")) res = s->set_wb_mode(s, val);
     else if(!strcmp(parameter, "ae_level")) res = s->set_ae_level(s, val);
 	else if(!strcmp(parameter, "nightmode")) res = s->set_nightmode(s, val);
-	else if(!strcmp(parameter, "sava_to_nvs") && !strcmp(value, "1")) res = esp_camera_save_to_nvs("cam_param");
+	else if(!strcmp(parameter, "save_to_nvs") && !strcmp(value, "1")) res = esp_camera_save_to_nvs("cam_param");
     else ESP_LOGW(TAG, "Invalid parameter %s", parameter);
 
 	return ESP_OK;
