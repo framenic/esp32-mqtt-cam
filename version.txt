@@ -1,4 +1,5 @@
-1.2.0
+1.3.0
+1.3.0 set cpu frequency to 240MHz and SPIRAM to QIO 80MHz mode
 1.2.0 added red led driving
 1.1.0 main release: mqtt publish of images, camera parameters saved in nvs
 1.0.0 implemented first version cam support
